@@ -1,6 +1,6 @@
 <?php
 
-namespace mmeyer2k/Monorail;
+namespace mmeyer2k\Monorail;
 
 class QueueWorker
 {

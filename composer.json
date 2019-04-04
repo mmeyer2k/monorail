@@ -1,0 +1,8 @@
+{
+    "name": "mmeyer2k/monorail",
+    "type": "library",
+    "require": {
+        "mmeyer2k/semlock": "^1.0"
+    },
+    "license": "MIT"
+}

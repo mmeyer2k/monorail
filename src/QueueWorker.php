@@ -35,10 +35,12 @@ class QueueWorker
         $exmsg = '';
 
         try {
-            $closure();
+            $ret = $closure();
         } catch (\Exception $e) {
             $exmsg = $e->getMessage();
         }
+        
+        $redis->multi();
 
         if ($exmsg) {
             if ($fails >= 3) {
@@ -49,12 +51,15 @@ class QueueWorker
 
             echo "failed...     [$job->id][$fails][$exmsg]\n";
         } else {
+            
             $redis->rpop("queue:active");
 
-            $fails = $redis->del("queue:failed:$job->id");
+            $redis->del("queue:failed:$job->id");
 
             echo "processed...  [$job->id]\n";
         }
+            
+        $redis->exec();
     
         sem_release($sem);
     

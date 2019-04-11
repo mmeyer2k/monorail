@@ -4,7 +4,7 @@ namespace mmeyer2k\Monorail;
 
 class Queue
 {
-    public static function push(\Predis\Client $redis, \Closure $closure, string $tube = 'default')
+    public static function push(\Predis\Client $redis, \Closure $closure, string $tube = 'default', int $delay = 0)
     {
         $id = md5(mt_rand());
 

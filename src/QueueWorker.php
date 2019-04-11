@@ -2,67 +2,55 @@
 
 namespace mmeyer2k\Monorail;
 
+use mmeyer2k\SemLock;
+
 class QueueWorker
 {
-    public static function consoleLog(string $msg)
-    {
-    }
-
     public static function popJob(\Predis\Client $redis, string $tube): bool
     {
-        $jobRaw = $redis->lindex("monorail:$tube:active", -1);
+        return SemLock::synchronize($tube, function () use ($redis, $tube) {
+            $jobRaw = $redis->lindex("monorail:$tube:active", -1);
 
-        $job = json_decode($jobRaw);
+            $job = json_decode($jobRaw);
 
-        if (!$job) {
-            return false;
-        }
+            $serializer = new \SuperClosure\Serializer();
 
-        $sem = sem_get(666);
+            $closure = $serializer->unserialize($job->closure);
 
-        sem_acquire($sem);
+            // Increment job failed counter here and save back to redis
+            // in case something causes this entire process to fail
+            $fails = $redis->incr("monorail:$tube:failed:$job->id");
 
-        echo "processing... [$job->id]\n";
+            $exmsg = '';
 
-        $serializer = new \SuperClosure\Serializer();
-
-        $closure = $serializer->unserialize($job->closure);
-
-        // Increment job failed counter here and save back to redis
-        // in case something causes this entire process to fail
-        $fails = $redis->incr("monorail:$tube:failed:$job->id");
-
-        $exmsg = '';
-
-        try {
-            $ret = $closure();
-        } catch (\Exception $e) {
-            $exmsg = $e->getMessage();
-        }
-
-        $redis->multi();
-
-        if ($exmsg) {
-            if ($fails >= 3) {
-                $redis->rpoplpush("queue:active", "queue:failed");
-            } else {
-                $redis->rpoplpush("queue:active", "queue:active");
+            try {
+                $ret = $closure();
+            } catch (\Exception $e) {
+                $exmsg = $e->getMessage();
             }
 
-            echo "failed...     [$job->id][$fails][$exmsg]\n";
-        } else {
+            $redis->multi();
 
-            $redis->rpop("queue:active");
+            if ($exmsg) {
+                if ($fails >= 3) {
+                    $redis->rpoplpush("monorail:$tube:active", "monorail:$tube:failed");
+                } else {
+                    $redis->rpoplpush("monorail:$tube:active", "monorail:$tube:active");
+                }
 
-            $redis->del("queue:failed:$job->id");
+                echo "failed...     [$job->id][$fails][$exmsg]\n";
+            } else {
 
-            echo "processed...  [$job->id]\n";
-        }
+                $redis->rpop("monorail:$tube:active");
 
-        $redis->exec();
+                $redis->del("monorail:$tube:failed:$job->id");
 
-        sem_release($sem);
+                echo "processed...  [$job->id]\n";
+            }
 
-        return true;
+            $redis->exec();
+
+            return true;
+        });
     }
 }

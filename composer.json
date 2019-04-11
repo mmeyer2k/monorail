@@ -2,7 +2,17 @@
     "name": "mmeyer2k/monorail",
     "type": "library",
     "require": {
-        "mmeyer2k/semlock": "^1.0"
+        "mmeyer2k/semlock": "^1.0",
+        "predis/predis": "^1.1"
     },
-    "license": "MIT"
+    "autoload": {
+        "classmap": [
+            "src/Queue.php",
+            "src/QueueWorker.php"
+        ]
+    },
+    "license": "MIT",
+    "require-dev": {
+        "phpunit/phpunit": "^7.5"
+    }
 }

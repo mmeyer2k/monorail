@@ -8,4 +8,13 @@ jobs:
     steps:
       - run: sudo docker-php-ext-install sysvsem
       - run: git clone https://github.com/mmeyer2k/monorail .
+      - restore_cache:
+          keys:
+            - v1-dep-{{ .Branch }}-
+            - v1-dep-master-
+            - v1-dep-
       - run: composer --no-interaction --no-scripts --no-ansi --prefer-dist -a install
+      - save_cache:
+          key: v1-dep-{{ .Branch }}-{{ epoch }}
+          paths:
+            - vendor

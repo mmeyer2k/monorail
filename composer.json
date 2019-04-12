@@ -3,12 +3,13 @@
     "type": "library",
     "require": {
         "mmeyer2k/semlock": "^1.0",
-        "predis/predis": "^1.1"
+        "predis/predis": "^1.1",
+        "jeremeamia/SuperClosure": "^2.4"
     },
     "autoload": {
         "classmap": [
-            "src/Queue.php",
-            "src/QueueWorker.php"
+            "Task.php",
+            "QueueWorker.php"
         ]
     },
     "license": "MIT",

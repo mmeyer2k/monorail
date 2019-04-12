@@ -4,7 +4,7 @@ namespace mmeyer2k\Monorail;
 
 use mmeyer2k\SemLock;
 
-class QueueWorker
+class Worker
 {
     public static function popJob(\Predis\Client $redis, string $tube): bool
     {
@@ -41,7 +41,11 @@ class QueueWorker
                 echo "failed...     [$job->id][$fails][$exmsg]\n";
             } else {
 
-                $redis->rpop("monorail:$tube:active");
+                if (is_a($ret, TaskRequeue::class)) {
+                    // Requeue the class
+                } else {
+                    $redis->rpop("monorail:$tube:active");
+                }
 
                 $redis->del("monorail:$tube:failed:$job->id");
 
@@ -49,8 +53,6 @@ class QueueWorker
             }
 
             $redis->exec();
-
-            return true;
         });
     }
 }

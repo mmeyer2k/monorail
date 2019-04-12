@@ -7,9 +7,10 @@
         "jeremeamia/SuperClosure": "^2.4"
     },
     "autoload": {
-        "classmap": [
+        "files": [
             "src/Task.php",
-            "QueueWorker.php"
+            "src/TaskRequeue.php",
+            "src/Worker.php"
         ]
     },
     "license": "MIT",

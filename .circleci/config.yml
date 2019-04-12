@@ -18,3 +18,4 @@ jobs:
           key: v1-dep-{{ .Branch }}-{{ epoch }}
           paths:
             - vendor
+      - run: php tests/push.php

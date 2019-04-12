@@ -8,7 +8,7 @@
     },
     "autoload": {
         "classmap": [
-            "Task.php",
+            "src/Task.php",
             "QueueWorker.php"
         ]
     },

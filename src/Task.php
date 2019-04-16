@@ -8,7 +8,7 @@ use Predis\Client;
 class Task
 {
     private $redis;
-    private $tube;
+    private $priority;
     private $delay;
 
     public function __construct(\Predis\Client $redis = null)
@@ -20,9 +20,9 @@ class Task
         $this->redis = $redis;
     }
 
-    public function tube(string $tube = 'default'): self
+    public function priority(int $priority = 5): self
     {
-        $this->tube = $tube;
+        $this->priority = $priority;
 
         return $this;
     }
@@ -49,9 +49,9 @@ class Task
 
         if ($this->delay) {
             $score = time() + $this->delay;
-            $this->redis->zadd("monorail:$this->tube:delayed", $score, $job);
+            $this->redis->zadd("monorail:$this->priority:delayed", $score, $job);
         } else {
-            $this->redis->lpush("monorail:$this->tube:active", $job);
+            $this->redis->lpush("monorail:$this->priority:active", $job);
         }
     }
 }

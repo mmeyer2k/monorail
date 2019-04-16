@@ -22,6 +22,10 @@ class Task
 
     public function priority(int $priority = 5): self
     {
+        if ($priority > 9 || $priority < 0) {
+            throw new \Exception("Priority values can only be 0 - 9");   
+        }
+        
         $this->priority = $priority;
 
         return $this;

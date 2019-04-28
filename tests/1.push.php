@@ -24,3 +24,16 @@ foreach (range(0, 9) as $p) {
             });
     }
 }
+
+foreach (range(0, 9) as $p) {
+    foreach (range(0, 99) as $i) {
+        echo "pushing priority:$p #$i [delayed]\n";
+        (new \mmeyer2k\Monorail\Task)
+            ->priority($p)
+            ->tube('tube2')
+            ->delay(2)
+            ->push(function () {
+                \Redis::incr('test_count_delayed_tube2');
+            });
+    }
+}

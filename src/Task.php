@@ -8,9 +8,14 @@ use Predis\Client;
 class Task
 {
     private $redis;
-    private $priority;
-    private $delay;
+    private $tube = 'default';
+    private $delay = 0;
+    private $priority = 5;
 
+    /**
+     * Task constructor.
+     * @param Client|null $redis
+     */
     public function __construct(\Predis\Client $redis = null)
     {
         if ($redis === null) {
@@ -20,17 +25,37 @@ class Task
         $this->redis = $redis;
     }
 
+    /**
+     * @param string $tube
+     * @return Task
+     */
+    public function tube(string $tube): self
+    {
+        $this->priority = $tube;
+
+        return $this;
+    }
+
+    /**
+     * @param int $priority
+     * @return Task
+     * @throws \InvalidArgumentException
+     */
     public function priority(int $priority = 5): self
     {
         if ($priority > 9 || $priority < 0) {
-            throw new \Exception("Priority values can only be 0 - 9");   
+            throw new \InvalidArgumentException("Priority values can only be 0 - 9");
         }
-        
+
         $this->priority = $priority;
 
         return $this;
     }
 
+    /**
+     * @param int $delay
+     * @return Task
+     */
     public function delay(int $delay = 0): self
     {
         $this->delay = $delay;
@@ -38,6 +63,9 @@ class Task
         return $this;
     }
 
+    /**
+     * @param \Closure $closure
+     */
     public function push(\Closure $closure)
     {
         $id = md5(mt_rand());
@@ -53,9 +81,62 @@ class Task
 
         if ($this->delay) {
             $score = time() + $this->delay;
-            $this->redis->zadd("monorail:$this->priority:delayed", $score, $job);
+            $this->redis->zadd("monorail:$this->tube:$this->priority:delayed", $score, $job);
         } else {
-            $this->redis->lpush("monorail:$this->priority:active", $job);
+            $this->redis->lpush("monorail:$this->tube:$this->priority:active", $job);
         }
+    }
+
+    public function work()
+    {
+        return SemLock::synchronize("monorail:semlock:$this->tube:$this->priority", function () {
+            // Get the first job off of the active queue
+            $jobRaw = $this->redis->lindex("monorail:$this->tube:$this->priority:active", -1);
+
+            // Decode the job json blob
+            $job = json_decode($jobRaw);
+
+            // Deserialize the job
+            $closure = (new \SuperClosure\Serializer())->unserialize($job->closure);
+
+            // Increment job failed counter here and save back to redis
+            // in case something causes this entire process to fail
+            $fails = $this->redis->incr("monorail:$this->tube->$this->priority:failed:$job->id");
+
+            $exmsg = '';
+            $ex = null;
+
+            try {
+                $ret = $closure();
+            } catch (\Exception $e) {
+                $ex = $e;
+            }
+
+            $this->redis->multi();
+
+            if ($ex !== null) {
+                $prefix = "monorail:$this->tube:$this->priority";
+                if ($fails >= 3) {
+                    $this->redis->rpoplpush("$prefix:active", "$prefix:failed");
+                } else {
+                    $this->redis->rpoplpush("$prefix:active", "$prefix:active");
+                }
+
+                echo "failed...     [$job->id][$fails][$exmsg]\n";
+            } else {
+
+                if (is_a($ret, TaskRequeue::class)) {
+                    // Requeue the class
+                } else {
+                    $this->redis->rpop("monorail:$this->tube:$this->priority:active");
+                }
+
+                $this->redis->del("monorail:$this->tube:failed:$job->id");
+
+                echo "processed...  [$job->id]\n";
+            }
+
+            $this->redis->exec();
+        });
     }
 }

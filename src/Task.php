@@ -89,7 +89,7 @@ class Task
 
     public function pending(): bool
     {
-        return $this->redis->scard("monorail:$this->tube:$this->priority:active") > 0;
+        return $this->redis->llen("monorail:$this->tube:$this->priority:active") > 0;
     }
 
     public function work()

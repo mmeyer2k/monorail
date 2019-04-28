@@ -87,6 +87,11 @@ class Task
         }
     }
 
+    public function pending(): bool
+    {
+        return $this->redis->scard("monorail:$this->tube:$this->priority:active") > 0;
+    }
+
     public function work()
     {
         return SemLock::synchronize("monorail:semlock:$this->tube:$this->priority", function () {

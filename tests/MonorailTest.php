@@ -2,6 +2,13 @@
 
 class MonorailTest extends \PHPUnit\Framework\TestCase
 {
+    /**
+     * Number of iterations to run per priority level and tube
+     *
+     * @var int
+     */
+    private $n = 3;
+
     function setUp()
     {
         $redis = new \Predis\Client;
@@ -9,20 +16,14 @@ class MonorailTest extends \PHPUnit\Framework\TestCase
         $redis->flushall();
 
         foreach (range(1, 9) as $p) {
-            foreach (range(0, 9) as $i) {
-                echo "pushing priority:$p #$i\n";
+            foreach (range(0, $this->n - 1) as $i) {
                 (new \mmeyer2k\Monorail\Task)
                     ->priority($p)
                     ->push(function () {
                         $redis = new \Predis\Client;
                         $redis->incr('test_count');
                     });
-            }
-        }
 
-        foreach (range(1, 9) as $p) {
-            foreach (range(0, 9) as $i) {
-                echo "pushing priority:$p #$i\n";
                 (new \mmeyer2k\Monorail\Task)
                     ->priority($p)
                     ->push(function () {
@@ -30,12 +31,7 @@ class MonorailTest extends \PHPUnit\Framework\TestCase
                         $redis->incr('test_count_failed');
                         throw new \Exception("WoMp wOmP");
                     });
-            }
-        }
 
-        foreach (range(1, 9) as $p) {
-            foreach (range(0, 9) as $i) {
-                echo "pushing priority:$p #$i [delayed]\n";
                 (new \mmeyer2k\Monorail\Task)
                     ->priority($p)
                     ->delay(1)
@@ -43,12 +39,7 @@ class MonorailTest extends \PHPUnit\Framework\TestCase
                         $redis = new \Predis\Client;
                         $redis->incr('test_count_delayed');
                     });
-            }
-        }
 
-        foreach (range(1, 9) as $p) {
-            foreach (range(0, 9) as $i) {
-                echo "pushing priority:$p #$i [delayed][tube2]\n";
                 (new \mmeyer2k\Monorail\Task)
                     ->priority($p)
                     ->tube('tube2')
@@ -69,8 +60,12 @@ class MonorailTest extends \PHPUnit\Framework\TestCase
     {
         $redis = new \Predis\Client;
 
-        $this->assertEquals(90, (int)$redis->get("test_count"));
+        $this->assertEquals(9 * $this->n, (int)$redis->get("test_count"));
 
-        $this->assertEquals(90, (int)$redis->get("test_count_delayed"));
+        $this->assertEquals(9 * $this->n, (int)$redis->get("test_count_delayed"));
+
+        $this->assertEquals(9 * $this->n * 3, (int)$redis->get("test_count_failed"));
+
+        $this->assertEquals(0, (int)$redis->zcard("monorail:default:1:delayed"));
     }
 }

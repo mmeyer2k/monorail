@@ -5,12 +5,9 @@ namespace mmeyer2k\Monorail;
 use SuperClosure\Serializer;
 use Predis\Client;
 
-class Task
+class Task extends Requeue
 {
     private $redis;
-    private $tube = 'default';
-    private $delay = 0;
-    private $priority = 5;
 
     /**
      * Task constructor.
@@ -23,44 +20,6 @@ class Task
         }
 
         $this->redis = $redis;
-    }
-
-    /**
-     * @param string $tube
-     * @return Task
-     */
-    public function tube(string $tube): self
-    {
-        $this->tube = $tube;
-
-        return $this;
-    }
-
-    /**
-     * @param int $priority
-     * @return Task
-     * @throws \InvalidArgumentException
-     */
-    public function priority(int $priority = 5): self
-    {
-        if ($priority > 9 || $priority < 1) {
-            throw new \InvalidArgumentException("Priority values can only be 1 - 9");
-        }
-
-        $this->priority = $priority;
-
-        return $this;
-    }
-
-    /**
-     * @param int $delay
-     * @return Task
-     */
-    public function delay(int $delay = 0): self
-    {
-        $this->delay = $delay;
-
-        return $this;
     }
 
     /**

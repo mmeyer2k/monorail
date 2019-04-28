@@ -6,36 +6,38 @@ use mmeyer2k\SemLock;
 
 class Worker
 {
-    public static function popJob(\Predis\Client $redis, string $tube): bool
+    public static function popJob(\Predis\Client $redis, int $priority): bool
     {
-        return SemLock::synchronize($tube, function () use ($redis, $tube) {
-            $jobRaw = $redis->lindex("monorail:$tube:active", -1);
+        return SemLock::synchronize("monorail:semlock:$priority", function () use ($redis, $priority) {
+            // Get the first job off of the active queue
+            $jobRaw = $redis->lindex("monorail:$priority:active", -1);
 
+            // Decode the job json blob
             $job = json_decode($jobRaw);
 
-            $serializer = new \SuperClosure\Serializer();
-
-            $closure = $serializer->unserialize($job->closure);
+            // Deserialize the job
+            $closure = (new \SuperClosure\Serializer())->unserialize($job->closure);
 
             // Increment job failed counter here and save back to redis
             // in case something causes this entire process to fail
-            $fails = $redis->incr("monorail:$tube:failed:$job->id");
+            $fails = $redis->incr("monorail:$priority:failed:$job->id");
 
             $exmsg = '';
+            $ex = null;
 
             try {
                 $ret = $closure();
             } catch (\Exception $e) {
-                $exmsg = $e->getMessage();
+                $ex = $e;
             }
 
             $redis->multi();
 
-            if ($exmsg) {
+            if ($ex !== null) {
                 if ($fails >= 3) {
-                    $redis->rpoplpush("monorail:$tube:active", "monorail:$tube:failed");
+                    $redis->rpoplpush("monorail:$priority:active", "monorail:$priority:failed");
                 } else {
-                    $redis->rpoplpush("monorail:$tube:active", "monorail:$tube:active");
+                    $redis->rpoplpush("monorail:$priority:active", "monorail:$priority:active");
                 }
 
                 echo "failed...     [$job->id][$fails][$exmsg]\n";

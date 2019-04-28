@@ -1,12 +1,12 @@
 <?php
 
-$single = in_array('--single', $argv);
-
 if (file_exists(__DIR__ . '/vendor/autoload.php')) {
     require __DIR__ . '/vendor/autoload.php';
 } else {
     require __DIR__ . '/../../autoload.php';
 }
+
+$single = in_array('--single', $argv);
 
 $redis = new Predis\Client;
 

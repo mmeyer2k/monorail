@@ -94,7 +94,7 @@ class Task
 
     public function work()
     {
-        return SemLock::synchronize("monorail:semlock:$this->tube:$this->priority", function () {
+        return \mmeyer2k\SemLock::synchronize("monorail:semlock:$this->tube:$this->priority", function () {
             // Get the first job off of the active queue
             $jobRaw = $this->redis->lindex("monorail:$this->tube:$this->priority:active", -1);
 

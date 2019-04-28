@@ -15,39 +15,36 @@ class MonorailTest extends \PHPUnit\Framework\TestCase
 
         $redis->flushall();
 
-        foreach (range(1, 9) as $p) {
-            foreach (range(0, $this->n - 1) as $i) {
-                (new \mmeyer2k\Monorail\Task)
-                    ->priority($p)
-                    ->push(function () {
-                        $redis = new \Predis\Client;
-                        $redis->incr('test_count');
-                    });
+        foreach (['default', 'tube2'] as $t) {
+            foreach (range(1, 9) as $p) {
+                foreach (range(0, $this->n - 1) as $i) {
+                    (new \mmeyer2k\Monorail\Task)
+                        ->priority($p)
+                        ->tube($t)
+                        ->push(function () use ($t) {
+                            $redis = new \Predis\Client;
+                            $redis->incr("count:basic:$t");
+                        });
 
-                (new \mmeyer2k\Monorail\Task)
-                    ->priority($p)
-                    ->push(function () {
-                        $redis = new \Predis\Client;
-                        $redis->incr('test_count_failed');
-                        throw new \Exception("WoMp wOmP");
-                    });
+                    (new \mmeyer2k\Monorail\Task)
+                        ->priority($p)
+                        ->tube($t)
+                        ->push(function () use ($t) {
+                            $redis = new \Predis\Client;
+                            $redis->incr("count:failure:$t");
+                            throw new \Exception("WoMp wOmP");
+                        });
 
-                (new \mmeyer2k\Monorail\Task)
-                    ->priority($p)
-                    ->delay(1)
-                    ->push(function () {
-                        $redis = new \Predis\Client;
-                        $redis->incr('test_count_delayed');
-                    });
+                    (new \mmeyer2k\Monorail\Task)
+                        ->priority($p)
+                        ->tube($t)
+                        ->delay(1)
+                        ->push(function () use ($t) {
+                            $redis = new \Predis\Client;
+                            $redis->incr("count:delayed:$t");
+                        });
 
-                (new \mmeyer2k\Monorail\Task)
-                    ->priority($p)
-                    ->tube('tube2')
-                    ->delay(1)
-                    ->push(function () {
-                        $redis = new \Predis\Client;
-                        $redis->incr('test_count_delayed_tube2');
-                    });
+                }
             }
         }
 
@@ -59,12 +56,18 @@ class MonorailTest extends \PHPUnit\Framework\TestCase
     function testCounters()
     {
         $redis = new \Predis\Client;
+        foreach (['default', 'tube2'] as $t) {
+            $this->assertEquals(9 * $this->n, (int)$redis->get("count:basic:$t"));
 
-        $this->assertEquals(9 * $this->n, (int)$redis->get("test_count"));
+            $this->assertEquals(9 * $this->n, (int)$redis->get("count:delayed:$t"));
 
-        $this->assertEquals(9 * $this->n, (int)$redis->get("test_count_delayed"));
+            $this->assertEquals(9 * $this->n * 3, (int)$redis->get("count:failure:$t"));
+        }
+    }
 
-        $this->assertEquals(9 * $this->n * 3, (int)$redis->get("test_count_failed"));
+    function testKeySizes()
+    {
+        $redis = new \Predis\Client;
 
         $this->assertEquals(0, (int)$redis->zcard("monorail:default:1:delayed"));
     }

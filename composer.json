@@ -9,7 +9,7 @@
     "autoload": {
         "files": [
             "src/Task.php",
-            "src/TaskRequeue.php"
+            "src/Requeue.php"
         ]
     },
     "license": "MIT",

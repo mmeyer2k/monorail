@@ -31,7 +31,7 @@ class Task
      */
     public function tube(string $tube): self
     {
-        $this->priority = $tube;
+        $this->tube = $tube;
 
         return $this;
     }

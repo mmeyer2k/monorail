@@ -8,7 +8,8 @@ foreach (range(1, 9) as $p) {
         (new \mmeyer2k\Monorail\Task)
             ->priority($p)
             ->push(function () {
-                `redis-cli incr test_count`;
+                $redis = new \Predis\Client;
+                $redis->incr('test_count');
             });
     }
 }
@@ -20,7 +21,8 @@ foreach (range(1, 9) as $p) {
             ->priority($p)
             ->delay(2)
             ->push(function () {
-                `redis-cli incr test_count_delayed`;
+                $redis = new \Predis\Client;
+                $redis->incr('test_count_delayed');
             });
     }
 }
@@ -33,7 +35,8 @@ foreach (range(1, 9) as $p) {
             ->tube('tube2')
             ->delay(2)
             ->push(function () {
-                `redis-cli incr test_count_delayed_tube2`;
+                $redis = new \Predis\Client;
+                $redis->incr('test_count_delayed_tube2');
             });
     }
 }

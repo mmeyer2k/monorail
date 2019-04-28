@@ -8,8 +8,8 @@
     },
     "autoload": {
         "files": [
-            "src/Task.php",
-            "src/Requeue.php"
+            "src/Requeue.php",
+            "src/Task.php"
         ]
     },
     "license": "MIT",

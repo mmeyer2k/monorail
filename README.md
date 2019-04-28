@@ -15,7 +15,7 @@ composer require mmeyer2k/monorail
 ```
 
 ### Priorities
-Monorail supports numeric priority levels from 1 to 9 with 5 being default and 1 being highest priority.
+Monorail supports numeric priority levels from 1 to 5 with 3 being default and 1 being highest priority.
 ```php
 (new \mmeyer2k\Monorail\Task)
     ->priority(1)

@@ -16,7 +16,7 @@ class MonorailTest extends \PHPUnit\Framework\TestCase
         $redis->flushall();
 
         foreach (['default', 'tube2'] as $t) {
-            foreach (range(1, 9) as $p) {
+            foreach (range(1, 5) as $p) {
                 foreach (range(0, $this->n - 1) as $i) {
                     (new \mmeyer2k\Monorail\Task)
                         ->priority($p)
@@ -56,12 +56,12 @@ class MonorailTest extends \PHPUnit\Framework\TestCase
     function testCounters()
     {
         $redis = new \Predis\Client;
-        foreach (['default', 'tube2'] as $t) {
-            $this->assertEquals(9 * $this->n, (int)$redis->get("count:basic:$t"));
+        foreach (['default'] as $t) {
+            $this->assertEquals(5 * $this->n, (int)$redis->get("count:basic:$t"));
 
-            $this->assertEquals(9 * $this->n, (int)$redis->get("count:delayed:$t"));
+            $this->assertEquals(5 * $this->n, (int)$redis->get("count:delayed:$t"));
 
-            $this->assertEquals(9 * $this->n * 3, (int)$redis->get("count:failure:$t"));
+            $this->assertEquals(5 * $this->n * 3, (int)$redis->get("count:failure:$t"));
         }
     }
 

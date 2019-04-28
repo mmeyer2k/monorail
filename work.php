@@ -8,7 +8,7 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
 
 $redis = new Predis\Client;
 
-foreach (range(1, 9) as $priority) {
+foreach (range(1, 5) as $priority) {
     while (true) {
         // Move any delayed items into active once their times have passed
         $wompwomp = $redis->zrangebyscore("monorail:default:$priority:delayed", '-inf', time(), [

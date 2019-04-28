@@ -43,8 +43,8 @@ class Task
      */
     public function priority(int $priority = 5): self
     {
-        if ($priority > 9 || $priority < 0) {
-            throw new \InvalidArgumentException("Priority values can only be 0 - 9");
+        if ($priority > 9 || $priority < 1) {
+            throw new \InvalidArgumentException("Priority values can only be 1 - 9");
         }
 
         $this->priority = $priority;
@@ -112,8 +112,6 @@ class Task
                 $ex = $e;
             }
 
-            $this->redis->multi();
-
             if ($ex !== null) {
                 $prefix = "monorail:$this->tube:$this->priority";
                 if ($fails >= 3) {
@@ -131,12 +129,10 @@ class Task
                     $this->redis->rpop("monorail:$this->tube:$this->priority:active");
                 }
 
-                $this->redis->del("monorail:$this->tube:failed:$job->id");
+                $this->redis->del("monorail:$this->tube:$this->priority:failed:$job->id");
 
                 echo "processed...  [$job->id]\n";
             }
-
-            $this->redis->exec();
         });
     }
 }

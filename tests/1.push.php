@@ -2,8 +2,8 @@
 
 require __DIR__ . "/../vendor/autoload.php";
 
-foreach (range(0, 9) as $p) {
-    foreach (range(0, 99) as $i) {
+foreach (range(1, 9) as $p) {
+    foreach (range(0, 9) as $i) {
         echo "pushing priority:$p #$i\n";
         (new \mmeyer2k\Monorail\Task)
             ->priority($p)
@@ -13,8 +13,8 @@ foreach (range(0, 9) as $p) {
     }
 }
 
-foreach (range(0, 9) as $p) {
-    foreach (range(0, 99) as $i) {
+foreach (range(1, 9) as $p) {
+    foreach (range(0, 9) as $i) {
         echo "pushing priority:$p #$i [delayed]\n";
         (new \mmeyer2k\Monorail\Task)
             ->priority($p)
@@ -25,8 +25,8 @@ foreach (range(0, 9) as $p) {
     }
 }
 
-foreach (range(0, 9) as $p) {
-    foreach (range(0, 99) as $i) {
+foreach (range(1, 9) as $p) {
+    foreach (range(0, 9) as $i) {
         echo "pushing priority:$p #$i [delayed]\n";
         (new \mmeyer2k\Monorail\Task)
             ->priority($p)

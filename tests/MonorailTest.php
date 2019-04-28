@@ -4,6 +4,10 @@ class MonorailTest extends \PHPUnit\Framework\TestCase
 {
     function setUp()
     {
+        $redis = new \Predis\Client;
+
+        $redis->flushall();
+
         foreach (range(1, 9) as $p) {
             foreach (range(0, 9) as $i) {
                 echo "pushing priority:$p #$i\n";
@@ -66,5 +70,7 @@ class MonorailTest extends \PHPUnit\Framework\TestCase
         $redis = new \Predis\Client;
 
         $this->assertEquals(90, (int)$redis->get("test_count"));
+
+        $this->assertEquals(90, (int)$redis->get("test_count_delayed"));
     }
 }

@@ -106,7 +106,7 @@ class Task
 
             // Increment job failed counter here and save back to redis
             // in case something causes this entire process to fail
-            $fails = $this->redis->incr("monorail:$this->tube->$this->priority:failed:$job->id");
+            $fails = $this->redis->incr("monorail:$this->tube:$this->priority:failed:$job->id");
 
             $exmsg = '';
             $ex = null;

@@ -19,3 +19,4 @@ jobs:
           paths:
             - vendor
       - run: php vendor/phpunit/phpunit/phpunit
+      - run: redis-cli keys "*"

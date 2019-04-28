@@ -19,5 +19,6 @@ jobs:
           paths:
             - vendor
       - run: php tests/1.push.php
-      - run: php tests/2.pull.php
-      - run: php tests/3.test.php
+      - run: php tests/2.sleep.php
+      - run: php tests/3.pull.php
+      - run: php tests/4.test.php

@@ -16,10 +16,23 @@ foreach (range(1, 9) as $p) {
 
 foreach (range(1, 9) as $p) {
     foreach (range(0, 9) as $i) {
+        echo "pushing priority:$p #$i\n";
+        (new \mmeyer2k\Monorail\Task)
+            ->priority($p)
+            ->push(function () {
+                $redis = new \Predis\Client;
+                $redis->incr('test_count_failed');
+                throw new \Exception("WoMp wOmP");
+            });
+    }
+}
+
+foreach (range(1, 9) as $p) {
+    foreach (range(0, 9) as $i) {
         echo "pushing priority:$p #$i [delayed]\n";
         (new \mmeyer2k\Monorail\Task)
             ->priority($p)
-            ->delay(2)
+            ->delay(1)
             ->push(function () {
                 $redis = new \Predis\Client;
                 $redis->incr('test_count_delayed');
@@ -33,7 +46,7 @@ foreach (range(1, 9) as $p) {
         (new \mmeyer2k\Monorail\Task)
             ->priority($p)
             ->tube('tube2')
-            ->delay(2)
+            ->delay(1)
             ->push(function () {
                 $redis = new \Predis\Client;
                 $redis->incr('test_count_delayed_tube2');

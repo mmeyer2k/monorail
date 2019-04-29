@@ -7,6 +7,7 @@ class Requeue
     protected $tube = 'default';
     protected $delay = 0;
     protected $priority = 3;
+    protected $tries = 3;
 
     /**
      * @param string $tube
@@ -15,6 +16,17 @@ class Requeue
     public function tube(string $tube): self
     {
         $this->tube = $tube;
+
+        return $this;
+    }
+
+    public function tries(int $tries = 3): self
+    {
+        if ($tries < 1) {
+            throw new \InvalidArgumentException("Tries value must be greater than 0");
+        }
+
+        $this->tries = $tries;
 
         return $this;
     }

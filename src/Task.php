@@ -35,12 +35,13 @@ class Task extends Requeue
 
         $job = json_encode([
             'id' => $id,
+            'tries' => $this->tries,
             'closure' => $serialized,
         ]);
 
         if ($this->delay) {
-            $score = time() + $this->delay;
-            $this->redis->zadd("monorail:$this->tube:$this->priority:delayed", $score, $job);
+            $zscore = time() + $this->delay;
+            $this->redis->zadd("monorail:$this->tube:$this->priority:delayed", $zscore, $job);
         } else {
             $this->redis->lpush("monorail:$this->tube:$this->priority:active", $job);
         }

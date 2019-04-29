@@ -44,6 +44,15 @@ class MonorailTest extends \PHPUnit\Framework\TestCase
                             $redis->incr("count:delayed:$t");
                         });
 
+                    (new \mmeyer2k\Monorail\Task)
+                        ->priority($p)
+                        ->tube($t)
+                        ->delay(10000)
+                        ->push(function () use ($t) {
+                            $redis = new \Predis\Client;
+                            $redis->incr("count:delayed:long:$t");
+                        });
+
                 }
             }
         }
@@ -69,6 +78,9 @@ class MonorailTest extends \PHPUnit\Framework\TestCase
     {
         $redis = new \Predis\Client;
 
-        $this->assertEquals(0, (int)$redis->zcard("monorail:default:1:delayed"));
+        foreach (['default'] as $t) {
+            $this->assertEquals(0, (int)$redis->zcard("monorail:$t:1:delayed"));
+            $this->assertEquals(0, (int)$redis->zcard("count:delayed:long:$t"));
+        }
     }
 }

@@ -53,8 +53,12 @@ class Task extends Requeue
     public function work()
     {
         return \mmeyer2k\SemLock::synchronize("monorail:semlock:$this->tube:$this->priority", function () {
+
+            // Create the tube key prefix
+            $prefix = "monorail:$this->tube:$this->priority";
+
             // Get the first job off of the active queue
-            $jobRaw = $this->redis->lindex("monorail:$this->tube:$this->priority:active", -1);
+            $jobRaw = $this->redis->lindex("$prefix:active", -1);
 
             // Decode the job json blob
             $job = json_decode($jobRaw);
@@ -64,9 +68,8 @@ class Task extends Requeue
 
             // Increment job failed counter here and save back to redis
             // in case something causes this entire process to fail
-            $fails = $this->redis->incr("monorail:$this->tube:$this->priority:failed:$job->id");
+            $fails = $this->redis->incr("$prefix:failed:$job->id");
 
-            $exmsg = '';
             $ex = null;
 
             try {
@@ -76,7 +79,8 @@ class Task extends Requeue
             }
 
             if ($ex !== null) {
-                $prefix = "monorail:$this->tube:$this->priority";
+                $exmsg = '';
+
                 if ($fails >= 3) {
                     $this->redis->rpoplpush("$prefix:active", "$prefix:failed");
                 } else {
@@ -89,10 +93,10 @@ class Task extends Requeue
                 if (is_a($ret, TaskRequeue::class)) {
                     // Requeue the class
                 } else {
-                    $this->redis->rpop("monorail:$this->tube:$this->priority:active");
+                    $this->redis->rpop("$prefix:active");
                 }
 
-                $this->redis->del("monorail:$this->tube:$this->priority:failed:$job->id");
+                $this->redis->del("$prefix:failed:$job->id");
 
                 echo "processed...  [$job->id]\n";
             }

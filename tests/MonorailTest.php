@@ -5,6 +5,7 @@ class MonorailTest extends \PHPUnit\Framework\TestCase
     function testCounters()
     {
         $redis = new \Predis\Client;
+
         foreach (['default'] as $t) {
             $this->assertEquals(5 * 3, (int)$redis->get("count:basic:$t"));
 

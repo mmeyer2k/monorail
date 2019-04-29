@@ -34,6 +34,15 @@ Monorail supports numeric priority levels from 1 to 5 with 3 being default and 1
 ```
 
 ### Delays
+```php
+$seconds = 15;
+
+(new \mmeyer2k\Monorail\Task)
+    ->delay($seconds)
+    ->push(function () {
+        echo "hello world";
+    });
+```
 
 ### Re-queues
 

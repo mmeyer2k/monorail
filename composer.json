@@ -3,13 +3,14 @@
     "type": "library",
     "require": {
         "mmeyer2k/semlock": "^1.0",
-        "predis/predis": "^1.1",
-        "jeremeamia/SuperClosure": "^2.4"
+        "predis/predis": "^1.0",
+        "jeremeamia/superclosure": "^2.0"
     },
     "autoload": {
         "files": [
             "src/Requeue.php",
-            "src/Task.php"
+            "src/Task.php",
+            "src/Console.php"
         ]
     },
     "license": "MIT",

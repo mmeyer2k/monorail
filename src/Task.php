@@ -29,9 +29,7 @@ class Task extends Requeue
     {
         $id = md5(mt_rand());
 
-        $serializer = new Serializer();
-
-        $serialized = $serializer->serialize($closure);
+        $serialized = (new Serializer())->serialize($closure);
 
         $job = json_encode([
             'id' => $id,

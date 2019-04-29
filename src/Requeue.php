@@ -48,12 +48,12 @@ class Requeue
     }
 
     /**
-     * @param int $delay
+     * @param int $seconds
      * @return Task
      */
-    public function delay(int $delay = 0): self
+    public function delay(int $seconds = 0): self
     {
-        $this->delay = $delay;
+        $this->delay = $seconds;
 
         return $this;
     }

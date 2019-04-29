@@ -25,6 +25,13 @@ Monorail supports numeric priority levels from 1 to 5 with 3 being default and 1
 ```
 
 ### Tubes
+```php
+(new \mmeyer2k\Monorail\Task)
+    ->tube('other tube')
+    ->push(function () {
+        echo "hello world";
+    });
+```
 
 ### Delays
 

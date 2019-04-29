@@ -70,36 +70,28 @@ class Task extends Requeue
             // in case something causes this entire process to fail
             $fails = $this->redis->incr("$prefix:failed:$job->id");
 
-            $ex = null;
-
             try {
                 $ret = $closure();
             } catch (\Exception $e) {
-                $ex = $e;
-            }
+                $exmsg = $e->getMessage();
 
-            if ($ex !== null) {
-                $exmsg = '';
+                $destination = $fails >= 3 ? "$prefix:failed" : "$prefix:active";
 
-                if ($fails >= 3) {
-                    $this->redis->rpoplpush("$prefix:active", "$prefix:failed");
-                } else {
-                    $this->redis->rpoplpush("$prefix:active", "$prefix:active");
-                }
+                $this->redis->rpoplpush("$prefix:active", $destination);
 
                 echo "failed...     [$job->id][$fails][$exmsg]\n";
-            } else {
-
-                if (is_a($ret, TaskRequeue::class)) {
-                    // Requeue the class
-                } else {
-                    $this->redis->rpop("$prefix:active");
-                }
-
-                $this->redis->del("$prefix:failed:$job->id");
-
-                echo "processed...  [$job->id]\n";
             }
+
+            if (is_a($ret, TaskRequeue::class)) {
+                // Requeue the class
+            } else {
+                $this->redis->rpop("$prefix:active");
+            }
+
+            $this->redis->del("$prefix:failed:$job->id");
+
+            echo "processed...  [$job->id]\n";
+
         });
     }
 }

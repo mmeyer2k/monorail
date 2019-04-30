@@ -44,7 +44,7 @@ if ($cmd === 'work') {
             $redis->exec();
         }
 
-        $task = (new \mmeyer2k\Monorail\Task)
+        $task = (new \mmeyer2k\Monorail\Queue)
             ->priority($priority);
 
         while ($task->pending()) {

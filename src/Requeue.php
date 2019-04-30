@@ -11,7 +11,7 @@ class Requeue
 
     /**
      * @param string $tube
-     * @return Task
+     * @return Queue
      */
     public function tube(string $tube): self
     {
@@ -33,7 +33,7 @@ class Requeue
 
     /**
      * @param int $priority
-     * @return Task
+     * @return Queue
      * @throws \InvalidArgumentException
      */
     public function priority(int $priority = 3): self
@@ -49,7 +49,7 @@ class Requeue
 
     /**
      * @param int $seconds
-     * @return Task
+     * @return Queue
      */
     public function delay(int $seconds = 0): self
     {

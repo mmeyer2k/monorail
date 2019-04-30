@@ -5,12 +5,12 @@ namespace mmeyer2k\Monorail;
 use SuperClosure\Serializer;
 use Predis\Client;
 
-class Task extends Requeue
+class Queue extends Requeue
 {
     private $redis;
 
     /**
-     * Task constructor.
+     * Queue constructor.
      * @param Client|null $redis
      */
     public function __construct(\Predis\Client $redis = null)
@@ -88,6 +88,7 @@ class Task extends Requeue
                 $this->redis->rpop("$prefix:active");
             }
 
+            // Since this job was successful, remove anything stored in the failed jobs accumulator
             $this->redis->del("$prefix:failed:$job->id");
 
             echo "processed...  [$job->id]\n";

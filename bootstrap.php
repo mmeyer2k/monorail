@@ -9,7 +9,7 @@ $redis->flushall();
 foreach (['default', 'tube2'] as $t) {
     foreach (range(1, 3) as $p) {
         foreach (range(1, 5) as $i) {
-            (new \mmeyer2k\Monorail\Task)
+            (new \mmeyer2k\Monorail\Queue)
                 ->priority($p)
                 ->tube($t)
                 ->push(function () use ($t) {
@@ -17,7 +17,7 @@ foreach (['default', 'tube2'] as $t) {
                     $redis->incr("count:basic:$t");
                 });
 
-            (new \mmeyer2k\Monorail\Task)
+            (new \mmeyer2k\Monorail\Queue)
                 ->priority($p)
                 ->tube($t)
                 ->push(function () use ($t) {
@@ -26,7 +26,7 @@ foreach (['default', 'tube2'] as $t) {
                     throw new \Exception("WoMp wOmP");
                 });
 
-            (new \mmeyer2k\Monorail\Task)
+            (new \mmeyer2k\Monorail\Queue)
                 ->priority($p)
                 ->tube($t)
                 ->delay(1)
@@ -35,7 +35,7 @@ foreach (['default', 'tube2'] as $t) {
                     $redis->incr("count:delayed:$t");
                 });
 
-            (new \mmeyer2k\Monorail\Task)
+            (new \mmeyer2k\Monorail\Queue)
                 ->priority($p)
                 ->tube($t)
                 ->delay(100000)

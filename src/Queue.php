@@ -5,7 +5,7 @@ namespace mmeyer2k\Monorail;
 use SuperClosure\Serializer;
 use Predis\Client;
 
-class Queue extends Requeue
+class Queue extends TaskRequeue
 {
     private $redis;
 
@@ -53,7 +53,6 @@ class Queue extends Requeue
     public function work()
     {
         return \mmeyer2k\SemLock::synchronize("monorail:semlock:$this->tube:$this->priority", function () {
-
             // Create the tube key prefix
             $prefix = "monorail:$this->tube:$this->priority";
 
@@ -63,12 +62,16 @@ class Queue extends Requeue
             // Decode the job json blob
             $job = json_decode($jobRaw);
 
+            echo "[$job->id]";
+
             // Deserialize the job
             $closure = (new \SuperClosure\Serializer())->unserialize($job->closure);
 
             // Increment job failed counter here and save back to redis
             // in case something causes this entire process to fail
             $fails = $this->redis->incr("$prefix:failed:$job->id");
+
+            $ret = null;
 
             try {
                 $ret = $closure();
@@ -79,7 +82,9 @@ class Queue extends Requeue
 
                 $this->redis->rpoplpush("$prefix:active", $destination);
 
-                echo "failed...     [$job->id][$fails][$exmsg]\n";
+                echo "[fail][#$fails] $exmsg\n";
+
+                return;
             }
 
             if (is_a($ret, TaskRequeue::class)) {
@@ -91,8 +96,7 @@ class Queue extends Requeue
             // Since this job was successful, remove anything stored in the failed jobs accumulator
             $this->redis->del("$prefix:failed:$job->id");
 
-            echo "processed...  [$job->id]\n";
-
+            echo "[done]\n";
         });
     }
 }

@@ -2,7 +2,7 @@
 
 namespace mmeyer2k\Monorail;
 
-class Requeue
+class TaskRequeue
 {
     protected $tube = 'default';
     protected $delay = 0;

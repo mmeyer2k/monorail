@@ -26,7 +26,7 @@ if ($cmd === 'work') {
     foreach (range(1, 5) as $priority) {
         while (true) {
             // Move any delayed items into active once their times have passed
-            $wompwomp = $redis->zrangebyscore("monorail:default:$priority:delayed", '-inf', time(), [
+            $wompwomp = $redis->zrangebyscore("monorail:$tube:$priority:delayed", '-inf', time(), [
                 'LIMIT' => 100,
             ]);
 
@@ -34,17 +34,18 @@ if ($cmd === 'work') {
                 break;
             }
 
-            $redis->multi();
+            //$redis->multi();
 
             foreach ($wompwomp as $womp) {
-                $redis->lpush("monorail:default:$priority:active", $womp);
-                $redis->zrem("monorail:default:$priority:delayed", $womp);
+                $redis->lpush("monorail:$tube:$priority:active", $womp);
+                $redis->zrem("monorail:$tube:$priority:delayed", $womp);
             }
 
-            $redis->exec();
+            //$redis->exec();
         }
 
         $task = (new \mmeyer2k\Monorail\Queue)
+            ->tube($tube)
             ->priority($priority);
 
         while ($task->pending()) {

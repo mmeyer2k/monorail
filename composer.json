@@ -9,8 +9,7 @@
     "autoload": {
         "files": [
             "src/Requeue.php",
-            "src/Task.php",
-            "src/Console.php"
+            "src/Queue.php"
         ]
     },
     "license": "MIT",

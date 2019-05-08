@@ -5,7 +5,7 @@ namespace mmeyer2k\Monorail;
 use SuperClosure\Serializer;
 use Predis\Client;
 
-class Queue extends TaskRequeue
+class Queue extends Task
 {
     private $redis;
 

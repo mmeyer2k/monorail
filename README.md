@@ -1,5 +1,5 @@
-# Monorail
-Monorail is a tiny closure queuing system for when you want to do one thing really fast.
+# :monorail: Monorail
+Monorail is a single-threaded, redis-backed queue processor for when you want to do one thing really fast.
 
 ## Install
 ```bash

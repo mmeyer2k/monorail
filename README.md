@@ -47,4 +47,15 @@ $seconds = 15;
 ### Re-queues
 
 ## Supervisor
-
+To make sure the queue worker is always running, supervisord is a great option.
+```
+[program:monorail-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /path/to/project/vendor/mmeyer2k/monorail/monorail work --tube=default
+autostart=true
+autorestart=true
+user=www-data
+numprocs=1
+redirect_stderr=true
+stdout_logfile=/tmp/supervisor-monorail.log
+```
